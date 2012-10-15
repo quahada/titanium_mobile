@@ -361,26 +361,14 @@ exports.bootstrapWindow = function(Titanium) {
 		var relScriptPath = scriptPath.replace("Resources/", "");
 		var scriptSource = assets.readAsset(scriptPath);
 
-		// Set up paths, filename and require for the new window context.
-		var module = new kroll.Module("app:///" + relScriptPath, this._module || kroll.Module.main, context);
-		module.paths = [path.dirname(scriptPath)];
-		module.filename = scriptPath;
+		// Setup require for the new window context.
+		var module = new kroll.Module(filename, this._module || kroll.Module.main, context);
 		context.require = function(request, context) {
 			return module.require(request, context);
 		};
 
-		Script.runInContext(scriptSource, context, relScriptPath, true);
-	}
-
-	// Determine the full path of the file which is defined by the "url" property.
-	Window.prototype.resolveFilePathFromURL = function(resolvedURL) {
-		var parentModule = this._module || kroll.Module.main,
-			resolved = url.toAssetPath(resolvedURL),
-			moduleId = this.url;
-
-		// Return "resolvedURL" if it is a valid path.
-		if (parentModule.filenameExists(resolved) || assets.fileExists(resolved)) {
-			return resolved;
+		if (kroll.runtime == "v8") {
+			Script.runInContext(scriptSource, context, scriptPath, true);
 
 		// Otherwise, try each possible path where the module's source file could be located.
 		} else {
