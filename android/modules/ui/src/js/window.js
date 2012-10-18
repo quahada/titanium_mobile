@@ -356,34 +356,20 @@ exports.bootstrapWindow = function(Titanium) {
 		context.console = NativeModule.require('console');
 		bootstrap.bootstrapGlobals(context, Titanium);
 
-		if (!scriptPath) {
-			kroll.log(TAG, "Window URL not found: " + this.url);
-			return;
-		}
-
+		var scriptPath = url.toAssetPath(resolvedUrl);
 		var relScriptPath = scriptPath.replace("Resources/", "");
 		var scriptSource = assets.readAsset(scriptPath);
-		var filename = 'app:///'+scriptPath.replace("Resources/", "");
 
 		// Setup require for the new window context.
-		var module = new kroll.Module(filename, this._module || kroll.Module.main, context);
+		var module = new kroll.Module("app:///" + relScriptPath, this._module || kroll.Module.main, context);
 		context.require = function(request, context) {
 			return module.require(request, context);
 		};
 
 		if (kroll.runtime == "v8") {
-			Script.runInContext(scriptSource, context, scriptPath, true);
-
-		// Otherwise, try each possible path where the module's source file could be located.
+			Script.runInContext(scriptSource, context, relScriptPath, true);
 		} else {
-			if (moduleId.indexOf(".js") == moduleId.length - 3) {
-				moduleId = moduleId.substring(0, moduleId.length -3);
-			}
-			resolved = parentModule.resolveFilename(moduleId);
-			// Return the file path if the file exists.
-			if (resolved) {
-				return resolved[1];
-			}
+			Script.runInThisContext(scriptSource, relScriptPath, true, context);
 		}
 
 		return null;
