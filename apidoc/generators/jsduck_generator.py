@@ -139,13 +139,13 @@ def markdown_to_html(s, obj=None):
 
 # remove <p> and </p> if a string is enclosed with them
 def remove_p_tags(str):
-	if str is None or len(str) == 0:
-		return ""
-	if str.startswith("<p>"):
-		str = str[3:]
-	if str.endswith("</p>"):
-		str = str[:-4]
-	return str
+    if str is None or len(str) == 0:
+        return ""
+    if str.startswith("<p>"):
+        str = str[3:]
+    if str.endswith("</p>"):
+        str = str[:-4]
+    return str
 
 # Print two digit version if third digit is 0.
 def format_version(version_str):
@@ -423,7 +423,7 @@ def generate(raw_apis, annotated_apis, options):
 
 				if k.default is not None:
 					default_val = remove_p_tags(markdown_to_html(str(k.default)))
-					write_utf8(output, '/**\n\t * @property [%s=%s]\n' % (k.name, default_val))
+					output.write('/**\n\t * @property [%s=%s]\n' % (k.name, default_val))
 				else:
 					write_utf8(output, "/**\n\t * @property %s\n" % (k.name))
 
@@ -460,7 +460,7 @@ def generate(raw_apis, annotated_apis, options):
 						optional = "(optional)" if param.has_key('optional') and param["optional"] == True else ""
 						if param.has_key('default'):
 							default_val = remove_p_tags(markdown_to_html(str(param['default'])))
-							write_utf8(output, "\t * @param %s [%s=%s] %s\n\t * %s\n" % (type, param['name'], default_val, optional, markdown_to_html(summary)))
+							output.write("\t * @param %s [%s=%s] %s\n\t * %s\n" % (type, param['name'], default_val, optional, markdown_to_html(summary)))
 						else:
 							write_utf8(output, "\t * @param %s %s %s\n\t * %s\n" % (type, param['name'], optional, markdown_to_html(summary)))
 
