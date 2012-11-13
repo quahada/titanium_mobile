@@ -510,6 +510,11 @@ public class TiHTTPClient
 	{
 		customAuthenticators.put(scheme, theFactory);
 	}
+	
+	public void addAuthFactory(String scheme, AuthSchemeFactory theFactory)
+	{
+		customAuthenticators.put(scheme, theFactory);
+	}
 
 	public void setReadyState(int readyState)
 	{
