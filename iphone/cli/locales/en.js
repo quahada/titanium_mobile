@@ -31,7 +31,6 @@
 	"Unable to find any iOS SDKs": "Unable to find any iOS SDKs",
 	"Please download and install an iOS SDK (version %s or newer)": "Please download and install an iOS SDK (version %s or newer)",
 	"Unable to find iOS SDK %s": "Unable to find iOS SDK %s",
-	"Missing iOS SDK": "Missing iOS SDK",
 	"Available iOS SDK versions:": "Available iOS SDK versions:",
 	"Build manifest does not exist: %s": "Build manifest does not exist: %s",
 	"Clean your project, then rebuild it": "Clean your project, then rebuild it",
