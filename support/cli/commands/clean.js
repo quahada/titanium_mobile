@@ -6,12 +6,16 @@
  */
 
 var appc = require('node-appc'),
+	i18n = appc.i18n(__dirname),
+	__ = i18n.__,
+	__n = i18n.__n,
 	ti = require('titanium-sdk'),
 	fs = require('fs'),
 	path = require('path'),
 	wrench = require('wrench');
 
-exports.desc = __('creates a new mobile application or module');
+exports.cliVersion = '>=3.X';
+exports.desc = __('removes previous build directories');
 
 exports.config = function (logger, config, cli) {
 	return {
@@ -32,14 +36,12 @@ exports.config = function (logger, config, cli) {
 
 exports.validate = function (logger, config, cli) {
 	cli.argv.platform && ti.validatePlatform(logger, cli.argv, 'platform');
-	ti.validateProjectDir(logger, cli.argv, 'project-dir');
+	ti.validateProjectDir(logger, cli, cli.argv, 'project-dir');
+	ti.loadPlugins(logger, cli, config, cli.argv['project-dir']);
 };
 
 exports.run = function (logger, config, cli) {
 	var buildDir = path.join(cli.argv['project-dir'], 'build');
-	
-	logger.debug(__('Touching tiapp.xml'));
-	appc.fs.touch(path.join(cli.argv['project-dir'], 'tiapp.xml'));
 	
 	if (cli.argv.platform) {
 		var dir = path.join(buildDir, cli.argv.platform);
@@ -49,7 +51,7 @@ exports.run = function (logger, config, cli) {
 		} else {
 			logger.debug(__('Directory does not exist %s', dir.cyan));
 		}
-	} else {
+	} else if (appc.fs.exists(buildDir)) {
 		logger.debug(__('Deleting all platform build directories'));
 		fs.readdirSync(buildDir).forEach(function (dir) {
 			dir = path.join(buildDir, dir);
@@ -58,6 +60,8 @@ exports.run = function (logger, config, cli) {
 				wrench.rmdirSyncRecursive(dir);
 			}
 		});
+	} else {
+		logger.debug(__('Directory does not exist %s', buildDir.cyan));
 	}
 	
 	logger.info(__('Project cleaned successfully in %s', appc.time.prettyDiff(cli.startTime, Date.now())) + '\n');

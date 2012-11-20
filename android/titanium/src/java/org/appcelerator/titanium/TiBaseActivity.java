@@ -12,10 +12,12 @@ import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
+import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.IntentProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
@@ -470,6 +472,26 @@ public abstract class TiBaseActivity extends Activity
 
 		Intent intent = getIntent();
 		if (intent != null) {
+
+			// Activity transition
+			final int NO_VAL = -1;
+			int enterAnim = intent.getIntExtra(TiC.INTENT_PROPERTY_ENTER_ANIMATION, NO_VAL);
+			int exitAnim = intent.getIntExtra(TiC.INTENT_PROPERTY_EXIT_ANIMATION, NO_VAL);
+
+			if (enterAnim != NO_VAL || exitAnim != NO_VAL) {
+				// If one of them is set, set both of them since
+				// overridePendingTransition requires both.
+				if (enterAnim == NO_VAL) {
+					enterAnim = 0;
+				}
+
+				if (exitAnim == NO_VAL) {
+					exitAnim = 0;
+				}
+
+				this.overridePendingTransition(enterAnim, exitAnim);
+			}
+
 			if (intent.hasExtra(TiC.INTENT_PROPERTY_MESSENGER)) {
 				messenger = (Messenger) intent.getParcelableExtra(TiC.INTENT_PROPERTY_MESSENGER);
 				msgActivityCreatedId = intent.getIntExtra(TiC.INTENT_PROPERTY_MSG_ACTIVITY_CREATED_ID, -1);
@@ -624,14 +646,13 @@ public abstract class TiBaseActivity extends Activity
 
 		switch(event.getKeyCode()) {
 			case KeyEvent.KEYCODE_BACK : {
-				// Deprecated and replaced by "androidback" event.
-				if (window.hasListeners("android:back")) {
+				if (activityProxy.hasListeners("android:back")) {
 					if (event.getAction() == KeyEvent.ACTION_UP) {
-						window.fireEvent("android:back", null);
+						activityProxy.fireEvent("android:back", null);
 					}
 					handled = true;
-				}
 
+				}
 				break;
 			}
 			case KeyEvent.KEYCODE_CAMERA : {
@@ -738,7 +759,7 @@ public abstract class TiBaseActivity extends Activity
 		if (activityProxy == null) {
 			return false;
 		}
-		
+
 		if (menuHelper == null) {
 			menuHelper = new TiMenuSupport(activityProxy);
 		}
@@ -749,7 +770,24 @@ public abstract class TiBaseActivity extends Activity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		return menuHelper.onOptionsItemSelected(item);
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				if (activityProxy != null) {
+					ActionBarProxy actionBarProxy = activityProxy.getActionBar();
+					if (actionBarProxy != null) {
+						KrollFunction onHomeIconItemSelected = (KrollFunction) actionBarProxy
+							.getProperty(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED);
+						KrollDict event = new KrollDict();
+						event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
+						if (onHomeIconItemSelected != null) {
+							onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
+						}
+					}
+				}
+				return true;
+			default:
+				return menuHelper.onOptionsItemSelected(item);
+		}
 	}
 
 	@Override
@@ -757,7 +795,7 @@ public abstract class TiBaseActivity extends Activity
 	{
 		return menuHelper.onPrepareOptionsMenu(super.onPrepareOptionsMenu(menu), menu);
 	}
-	
+
 	public static void callOrientationChangedListener(Configuration newConfig) 
 	{
 		if (orientationChangedListener != null && previousOrientation != newConfig.orientation) {
@@ -1149,14 +1187,7 @@ public abstract class TiBaseActivity extends Activity
 	{
 		super.finish();
 
-		if (window != null) {
-			KrollDict data = new KrollDict();
-			data.put(TiC.EVENT_PROPERTY_SOURCE, window);
-			window.fireSyncEvent(TiC.EVENT_CLOSE, data);
-		}
-
 		boolean animate = getIntentBoolean(TiC.PROPERTY_ANIMATE, true);
-
 		
 		if (shouldFinishRootActivity()) {
 			TiApplication app = getTiApp();
@@ -1169,7 +1200,7 @@ public abstract class TiBaseActivity extends Activity
 		}
 
 		if (!animate) {
-			TiUIHelper.overridePendingTransition(this);
+			this.overridePendingTransition(0, 0); // Suppress default transition.
 		}
 	}
 

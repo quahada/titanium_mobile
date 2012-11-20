@@ -14,6 +14,7 @@
 
 #include <pthread.h>
 #import "TiDebugger.h"
+#import "TiExceptionHandler.h"
 
 #import "TiUIAlertDialogProxy.h"
 
@@ -624,8 +625,9 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	if (exception!=NULL)
 	{
 		id excm = [KrollObject toID:context value:exception];
-		DebugLog(@"[ERROR] Script Error = %@",[TiUtils exceptionMessage:excm]);
-		fflush(stderr);
+		[[TiExceptionHandler defaultExceptionHandler] reportScriptError:[TiUtils scriptErrorValue:excm]];
+        pthread_mutex_unlock(&KrollEntryLock);
+		@throw excm;
 	}
     pthread_mutex_unlock(&KrollEntryLock);
 }
@@ -639,9 +641,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	if (exception!=NULL)
 	{
 		id excm = [KrollObject toID:context value:exception];
-		DebugLog(@"[ERROR] Script Error = %@",[TiUtils exceptionMessage:excm]);
-		fflush(stderr);
-        
+		[[TiExceptionHandler defaultExceptionHandler] reportScriptError:[TiUtils scriptErrorValue:excm]];
         pthread_mutex_unlock(&KrollEntryLock);
 		@throw excm;
 	}

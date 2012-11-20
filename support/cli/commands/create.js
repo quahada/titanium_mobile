@@ -10,8 +10,12 @@ var ti = require('titanium-sdk'),
 	path = require('path'),
 	wrench = require('wrench'),
 	appc = require('node-appc'),
+	i18n = appc.i18n(__dirname),
+	__ = i18n.__,
+	__n = i18n.__n,
 	afs = appc.fs;
 
+exports.cliVersion = '>=3.X';
 exports.desc = __('creates a new mobile application or module');
 
 exports.config = function (logger, config, cli) {
@@ -27,7 +31,7 @@ exports.config = function (logger, config, cli) {
 				abbr: 'p',
 				desc: __('the target build platform'),
 				prompt: {
-					default: ti.availablePlatforms,
+					default: ti.availablePlatformsNames,
 					label: __('Target platforms'),
 					error: __('Invalid list of target platforms'),
 					validator: function (platforms) {
@@ -39,7 +43,7 @@ exports.config = function (logger, config, cli) {
 					},
 				},
 				required: true,
-				values: ti.availablePlatforms,
+				values: ti.availablePlatformsNames,
 				skipValueCheck: true // we do our own validation
 			},
 			type: {
@@ -89,7 +93,7 @@ exports.config = function (logger, config, cli) {
 						return true;
 					}
 				},
-				required: !config.app.workspace || !afs.exists(config.app.workspace)
+				required: !config.app.workspace || !afs.exists(afs.resolvePath(config.app.workspace))
 			}
 		}, ti.commonOptions(logger, config))
 	};
@@ -109,9 +113,11 @@ exports.validate = function (logger, config, cli) {
 		process.exit(1);
 	}
 	
-	var projectDir = afs.resolvePath(cli.argv['workspace-dir'], cli.argv.name);
+	cli.argv['workspace-dir'] = afs.resolvePath(cli.argv['workspace-dir'] || '.');
+	
+	var projectDir = path.join(cli.argv['workspace-dir'], cli.argv.name);
 	if (!cli.argv.force && afs.exists(projectDir)) {
-		logger.error(__('Project directory alread exists: %s', projectDir) + '\n');
+		logger.error(__('Project directory already exists: %s', projectDir) + '\n');
 		logger.log(__("Run '%s' to overwrite existing project.", (cli.argv.$ + ' ' + process.argv.slice(2).join(' ') + ' --force').cyan) + '\n');
 		process.exit(1);
 	}
@@ -126,7 +132,8 @@ exports.run = function (logger, config, cli) {
 		projectDir = afs.resolvePath(cli.argv['workspace-dir'], projectName),
 		templateDir = afs.resolvePath(sdk.path, 'templates', type, cli.argv.template),
 		uuid = require('node-uuid'),
-		projectConfig;
+		projectConfig,
+		analyticsPayload;
 	
 	afs.exists(projectDir) || wrench.mkdirSyncRecursive(projectDir);
 	wrench.copyDirSyncRecursive(templateDir, projectDir);
@@ -141,8 +148,14 @@ exports.run = function (logger, config, cli) {
 		projectConfig.version = '1.0';
 		projectConfig.guid = uuid.v4();
 		projectConfig['deployment-targets'] = {};
-		ti.availablePlatforms.forEach(function (p) {
-			projectConfig['deployment-targets'][p] = platforms.indexOf(p) != -1;
+		if (platforms.indexOf('ios') != -1) {
+			platforms.indexOf('ipad') != -1 || platforms.push('ipad');
+			platforms.indexOf('iphone') != -1 || platforms.push('iphone');
+		}
+		ti.availablePlatformsNames.forEach(function (p) {
+			if (p != 'ios') {
+				projectConfig['deployment-targets'][p] = platforms.indexOf(p) != -1;
+			}
 		});
 		projectConfig['sdk-version'] = sdk.name;
 		projectConfig.save(projectDir + '/tiapp.xml');
@@ -159,6 +172,24 @@ exports.run = function (logger, config, cli) {
 			'#image: appicon.png',
 			'#desc: not specified'
 		].join('\n'));
+
+		analyticsPayload = {
+			dir: projectDir,
+			name: projectName,
+			publisher: projectConfig.publisher,
+			url: projectConfig.url,
+			image: projectConfig.image,
+			appid: id,
+			description: projectConfig.description,
+			type: 'mobile',
+			guid: projectConfig.guid,
+			version: projectConfig.version,
+			copyright: projectConfig.copyright,
+			runtime: '1.0',
+			date: (new Date()).toDateString()
+		};
+		
+		cli.addAnalyticsEvent('project.create.mobile', analyticsPayload);
 	} else if (type == 'module') {
 		logger.info(__('Creating Titanium Mobile module project'));
 		
@@ -193,9 +224,24 @@ exports.run = function (logger, config, cli) {
 			'name: ' + projectName,
 			'moduleid: ' + id,
 			'guid: ' + projectConfig.__GUID__,
-			'platforms: ' + platforms.sort().join(', '),
-			'minsdk: ' + sdk.name
+			'platforms: ' + platforms.sort().join(', ')
 		].join('\n'));
+
+		analyticsPayload = {
+			dir: projectDir,
+			name: projectName,
+			author: ((config.user && config.user.name) || 'Your Name'),
+			moduleid: id,
+			description: projectName,
+			guid: projectConfig.__GUID__,
+			version: '1.0',
+			copyright: 'copyright: Copyright (c) 2012 by ' + ((config.user && config.user.name) || 'Your Company'),
+			minsdk: sdk.name,
+			platforms: platforms.sort().join(', '),
+			date: (new Date()).toDateString()
+		};
+		
+		cli.addAnalyticsEvent('project.create.module', analyticsPayload);
 	}
 	
 	platforms.forEach(function (platform) {
