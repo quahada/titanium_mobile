@@ -261,4 +261,15 @@ public class HTTPClientProxy extends KrollProxy
 			client.addKeyManager((X509KeyManager)manager);
 		}
 	}
+	
+	@Kroll.method
+	public void addAuthFactory(String scheme, Object factory)
+	{
+		//Sanity Checks
+		if ( (scheme == null) || (scheme.length() == 0) || (factory == null) || (! (factory instanceof AuthSchemeFactory) )) {
+			return;
+		}
+		
+		client.addAuthFactory(scheme, (AuthSchemeFactory)factory);
+	}
 }
