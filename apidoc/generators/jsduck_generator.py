@@ -530,13 +530,13 @@ def generate(raw_apis, annotated_apis, options):
 								"events":"@event" }[member_type]
 						excluded_members = api_obj["excludes"][member_type]
 						for one_member in excluded_members:
-							write_utf8(output, "/**\n\t * %s %s \n\t * @hide\n*/\n" % (annotation_string, one_member))
+							output.write("/**\n\t * %s %s \n\t * @hide\n*/\n" % (annotation_string, one_member))
 							# Explicitly hide accessors
 							if member_type == "properties" and "extends" in api_obj:
 								parent_name = api_obj["extends"]
 								hide_methods = hide_accessors(parent_name, one_member)
 								if hide_methods:
-									write_utf8(output, "%s" % (hide_methods))
+									output.write("%s" % (hide_methods))
 
 
 		output.close()
