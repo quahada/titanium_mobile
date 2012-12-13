@@ -13,7 +13,6 @@ define(['Ti/_/declare', 'Ti/_/lang', 'Ti/_/UI/Widget', 'Ti/_/dom', 'Ti/_/style',
 					height: UI.SIZE
 				});
 			this._add(contentContainer);
-
 			Widget.prototype.hide.call(this);
 
 			contentContainer._add(this._indicatorIndicator = UI.createView());
@@ -65,13 +64,19 @@ define(['Ti/_/declare', 'Ti/_/lang', 'Ti/_/UI/Widget', 'Ti/_/dom', 'Ti/_/style',
 		},
 
 		show: function() {
-			Widget.prototype.show.call(this);
-			this._timer = setInterval(lang.hitch(this, '_animate'), 100);
+			if (!this._visible) {
+				Widget.prototype.show.call(this);
+				this._timer = setInterval(lang.hitch(this, "_animate"), 100);
+				this._visible = 1;
+			}
 		},
 
 		hide: function() {
 			clearTimeout(this._timer);
-			Widget.prototype.hide.call(this);
+			if (this._visible) {
+				Widget.prototype.hide.call(this);
+				this._visible = 0;
+			}
 		},
 
 		_currentProng: 0,
