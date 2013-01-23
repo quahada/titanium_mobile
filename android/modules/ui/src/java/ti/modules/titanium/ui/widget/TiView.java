@@ -6,12 +6,18 @@
  */
 package ti.modules.titanium.ui.widget;
 
+import java.util.HashMap;
+
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiUIView;
+
+import ti.modules.titanium.ui.TabContentViewProxy;
 
 import android.view.View;
 
@@ -39,6 +45,22 @@ public class TiView extends TiUIView
 		super.setOpacity(view, opacity);
 		TiCompositeLayout layout = (TiCompositeLayout) nativeView;
 		layout.setAlphaCompat(opacity);
+	}
+
+	@Override
+	public void processProperties(KrollDict d)
+	{
+		if (proxy instanceof TabContentViewProxy && d.containsKey(TiC.PROPERTY_ACTIVITY)) {
+			Object activityObject = d.get(TiC.PROPERTY_ACTIVITY);
+			ActivityProxy activityProxy = getProxy().getActivityProxy();
+			if (activityObject instanceof HashMap<?, ?> && activityProxy != null) {
+				@SuppressWarnings("unchecked")
+				KrollDict options = new KrollDict((HashMap<String, Object>) activityObject);
+				activityProxy.handleCreationDict(options);
+			}
+		}
+
+		super.processProperties(d);
 	}
 
 }
