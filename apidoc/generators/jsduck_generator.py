@@ -312,14 +312,14 @@ def get_summary_and_description(api_obj):
 	if api_obj.has_key("description"):
 		desc = markdown_to_html(api_obj["description"])
 
-	res = u""
+	res = ""
 	if summary != None:
-		res = u"\t * " + summary + "\n"
+		res = "\t * " + summary + "\n"
 		if desc != None:
-			res += u"\t * @description " + desc + "\n"
+			res += "\t * @description " + desc + "\n"
 	elif desc != None:
 		# use description if there is no summary
-		res = u"\t * " + desc
+		res = "\t * " + desc
 	return res
 
 # Side effect of hiding properties is that the accessors do not get hidden
@@ -530,13 +530,13 @@ def generate(raw_apis, annotated_apis, options):
 								"events":"@event" }[member_type]
 						excluded_members = api_obj["excludes"][member_type]
 						for one_member in excluded_members:
-							write_utf8(output, "/**\n\t * %s %s \n\t * @hide\n*/\n" % (annotation_string, one_member))
+							output.write("/**\n\t * %s %s \n\t * @hide\n*/\n" % (annotation_string, one_member))
 							# Explicitly hide accessors
 							if member_type == "properties" and "extends" in api_obj:
 								parent_name = api_obj["extends"]
 								hide_methods = hide_accessors(parent_name, one_member)
 								if hide_methods:
-									write_utf8(output, "%s" % (hide_methods))
+									output.write("%s" % (hide_methods))
 
 
 		output.close()

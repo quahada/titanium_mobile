@@ -416,7 +416,7 @@ class AnnotatedProxy(AnnotatedApi):
 		if "excludes" in self.api_obj and att_list_name in self.api_obj["excludes"]:
 			excluded_names = self.api_obj["excludes"][att_list_name]
 
-		class_platforms = []
+		class_platforms = 0
 		if dict_has_non_empty_member(self.api_obj, "platforms"):
 			class_platforms = self.api_obj["platforms"]
 
@@ -434,8 +434,11 @@ class AnnotatedProxy(AnnotatedApi):
 						attr_platforms = new_item["platforms"]
 						platform_match = False;
 						for attr_platform_name in attr_platforms:
-							if attr_platform_name in class_platforms:
-								platform_match = True;
+							for class_platform_name in class_platforms:
+								if attr_platform_name == class_platform_name:
+									platform_match = True;
+									break
+							if platform_match:
 								break
 						if not platform_match:
 							excluded_names.append(new_item["name"])
