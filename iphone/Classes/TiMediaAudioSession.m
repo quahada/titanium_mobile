@@ -283,6 +283,7 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 
 -(void)setRouteOverride:(UInt32)mode
 {
+	DebugLog(@"[DEBUG] setRouteOverride.");
 	if ([self isActive]) {
 		DebugLog(@"[WARN] Overriding audio route while playing audio... changes will not take effect until audio is restarted.");
 	}
