@@ -159,6 +159,8 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 	[lock lock];
 	active = count > 0;
 	[lock unlock];
+	//fprintf(stderr, "Info: isActive: %s \n", active);
+	//fprintf(stderr, "Info: count: %s \n", count);
 	return active;
 }
 

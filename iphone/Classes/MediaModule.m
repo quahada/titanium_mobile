@@ -1299,6 +1299,7 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
 
 -(void)setAudioSessionMode:(NSNumber*)mode
 {
+	DebugLog(@"[INFO] Setting audioSessionMode");
     [[TiMediaAudioSession sharedSession] setSessionMode:[mode unsignedIntValue]];
 }
 
