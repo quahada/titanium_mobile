@@ -67,8 +67,20 @@ int AQRecorder::ComputeRecordBufferSize(const AudioStreamBasicDescription *forma
 				maxPacketSize = format->mBytesPerPacket;	// constant packet size
 			else {
 				UInt32 propertySize = sizeof(maxPacketSize);
-				XThrowIfError(AudioQueueGetProperty(mQueue, kAudioQueueProperty_MaximumOutputPacketSize, &maxPacketSize,
-													&propertySize), "couldn't get queue's maximum output packet size");
+				OSStatus queueStatus = AudioQueueGetProperty(mQueue, kAudioQueueProperty_MaximumOutputPacketSize, &maxPacketSize,
+													&propertySize);
+				fprintf(stderr, "Info: queueStatus: %d \n", queueStatus);
+				fprintf(stderr, "Info: maxPacketSize: %d \n", maxPacketSize);
+				try {
+					XThrowIfError(queueStatus, "couldn't get queue's maximum output packet size");
+				}
+				catch (CAXException& e) {
+					maxPacketSize = 768;
+					fprintf(stderr, "Info: manually setting maxPacketSize = 768\n");
+				}
+				
+				//XThrowIfError(AudioQueueGetProperty(mQueue, kAudioQueueProperty_MaximumOutputPacketSize, &maxPacketSize,
+				//									&propertySize), "couldn't get queue's maximum output packet size");
 			}
 			if (format->mFramesPerPacket > 0)
 				packets = frames / format->mFramesPerPacket;
@@ -329,8 +341,11 @@ void AQRecorder::StartRecord(CFStringRef inRecordFile, UInt32 fileFormatID)
 											&mRecordFormat, &size), "couldn't get queue's format");
 		
 		//NSString *recordFile = [NSTemporaryDirectory() stringByAppendingPathComponent: (NSString*)inRecordFile];	
+		//url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)recordFile, kCFURLPOSIXPathStyle, false);
 		
-		url = CFURLCreateWithString(kCFAllocatorDefault, (CFStringRef)mFileName, NULL);
+		//url = CFURLCreateWithString(kCFAllocatorDefault, (CFStringRef)mFileName, NULL);
+		url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)mFileName, kCFURLPOSIXPathStyle, false);
+
 		
 		// create the audio file
 		//XThrowIfError(AudioFileCreateWithURL(url, fileFormatID, &mRecordFormat, kAudioFileFlags_EraseFile,
