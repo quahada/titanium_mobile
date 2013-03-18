@@ -1004,10 +1004,10 @@ build.prototype = {
 
 	preparePhase: function (finished) {
 		this.architectures = 'armv6 armv7 i386';
-		// no armv6 support above 4.3 or with 6.0+ SDK
+		// no armv6 support above 5.0 or with 6.0+ SDK
 		if (version.gte(this.cli.argv['ios-version'], '6.0')) {
 			this.architectures = 'armv7 armv7s i386';
-		} else if (version.gte(this.minIosVer, '4.3')) {
+		} else if (version.gte(this.minIosVer, '5.0')) {
 			this.architectures = 'armv7 i386';
 		}
 		this.logger.debug(__('Building for the following architectures: %s', this.architectures.cyan));
