@@ -870,9 +870,9 @@ function build(logger, config, cli, finished) {
 	
 	// validate the min-ios-ver from the tiapp.xml
 	this.minIosVer = this.tiapp.ios && this.tiapp.ios['min-ios-ver'] || minIosSdkVersion;
-	if (version.gte(this.iosSdkVersion, '6.0') && version.lt(this.minIosVer, '4.3')) {
-		this.logger.info(__('Building for iOS %s; using %s as minimum iOS version', version.format(this.iosSdkVersion, 2).cyan, '4.3'.cyan));
-		this.minIosVer = '4.3';
+	if (version.gte(this.iosSdkVersion, '6.0') && version.lt(this.minIosVer, '5.0')) {
+		this.logger.info(__('Building for iOS %s; using %s as minimum iOS version', version.format(this.iosSdkVersion, 2).cyan, '5.0'.cyan));
+		this.minIosVer = '5.0';
 	} else if (version.lt(this.minIosVer, minIosSdkVersion)) {
 		this.logger.info(__('The %s of the iOS section in the tiapp.xml is lower than minimum supported version: Using %s as minimum', 'min-ios-ver'.cyan, version.format(minIosSdkVersion, 2).cyan));
 		this.minIosVer = minIosSdkVersion;
@@ -954,10 +954,10 @@ build.prototype = {
 	
 	preparePhase: function (finished) {
 		this.architectures = 'armv6 armv7 i386';
-		// no armv6 support above 4.3 or with 6.0+ SDK
+		// no armv6 support above 5.0 or with 6.0+ SDK
 		if (version.gte(this.cli.argv['ios-version'], '6.0')) {
 			this.architectures = 'armv7 armv7s i386';
-		} else if (version.gte(this.minIosVer, '4.3')) {
+		} else if (version.gte(this.minIosVer, '5.0')) {
 			this.architectures = 'armv7 i386';
 		}
 		this.logger.debug(__('Building for the following architectures: %s', this.architectures.cyan));
