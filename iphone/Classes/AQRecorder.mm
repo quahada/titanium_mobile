@@ -92,7 +92,7 @@ int AQRecorder::ComputeRecordBufferSize(const AudioStreamBasicDescription *forma
 		}
 	} catch (CAXException e) {
 		char buf[256];
-		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
+		fprintf(stderr, "AQRecorder::ComputeRecordBufferSize Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
 		return 0;
 	}	
 	return bytes;
@@ -275,7 +275,7 @@ void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
 		case kAudioFormatMPEG4AAC:
 		{
 			fprintf(stderr, "Info: format: kAudioFormatMPEG4AAC\n");
-			mRecordFormat.mFormatFlags = 0;
+			mRecordFormat.mFormatFlags = 1;//0
 			mRecordFormat.mBitsPerChannel = 0;
 			mRecordFormat.mSampleRate = 44100.0;
 			mRecordFormat.mChannelsPerFrame = 1;
@@ -375,10 +375,10 @@ void AQRecorder::StartRecord(CFStringRef inRecordFile, UInt32 fileFormatID)
 	}
 	catch (CAXException e) {
 		char buf[256];
-		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
+		fprintf(stderr, "AQRecorder StartRecord Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
 	}
 	catch (...) {
-		fprintf(stderr, "An unknown error occurred\n");
+		fprintf(stderr, "AQRecorder StartRecord: An unknown error occurred\n");
 	}	
 	
 }
