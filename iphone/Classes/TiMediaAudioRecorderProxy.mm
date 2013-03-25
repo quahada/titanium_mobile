@@ -198,6 +198,12 @@
 	return YES;
 }
 
+-(void)resartAudioSession:(id)args
+{
+	DebugLog(@"[INFO] TiMediaAudioRecorderProxy.mm: resartAudioSession");
+	[[TiMediaAudioSession sharedSession] startAudioSession];
+}
+
 -(void)setAudioSessionMode:(NSNumber*)mode
 {
     UInt32 newMode = [mode unsignedIntegerValue]; // Close as we can get to UInt32
@@ -231,6 +237,7 @@
 	{
 		[self resume:nil];
 	}
+	DebugLog(@"[WARN] TiMediaAudioRecorderProxy.mm: audioInterruptionEnd");	
 }
 
 @end
