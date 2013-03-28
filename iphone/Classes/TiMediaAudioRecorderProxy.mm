@@ -74,11 +74,13 @@
 	// If we are currently recording, stop and save the file.
 	if (rec->IsRunning()) 
 	{
-		[self throwException:@"invalid state" subreason:@"already recording" location:CODELOCATION];
+		//[self throwException:@"invalid state" subreason:@"already recording" location:CODELOCATION];
+		DebugLog(@"[INFO] TiMediaAudioRecorderProxy.mm: start: invalid state, already recording");
 		return;
 	}
 	else
 	{
+		//[self throwException:@"invalid state" subreason:@"already recording" location:CODELOCATION];
 		RELEASE_TO_NIL(file);
 		
 		NSString *extension = nil;
