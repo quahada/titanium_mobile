@@ -199,7 +199,7 @@
 	return YES;
 }
 
--(void)resartAudioSession:(id)args
+-(void)restartAudioSession:(id)args
 {
 	DebugLog(@"[INFO] TiMediaAudioRecorderProxy.mm: resartAudioSession");
 	[[TiMediaAudioSession sharedSession] startAudioSession];

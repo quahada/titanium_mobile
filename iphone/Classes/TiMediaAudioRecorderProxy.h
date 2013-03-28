@@ -30,6 +30,7 @@
 -(void)resume:(id)args;
 -(void)start:(id)args;
 -(id)stop:(id)args;
+-(void)restartAudioSession:(id)args;
 
 @end
 
