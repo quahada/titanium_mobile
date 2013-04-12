@@ -144,7 +144,7 @@ AQRecorder::~AQRecorder()
 {
 	if (mQueue!=NULL)
 	{
-		AudioQueueDispose(mQueue, TRUE);
+		AudioQueueDispose(mQueue, true);
 		mQueue = NULL;
 	}
 	if (mRecordFile!=NULL)

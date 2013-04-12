@@ -134,6 +134,7 @@ void MyAudioQueueOutputCallbackCUR(	void*					inClientData,
 {
 	// this is called by the audio queue when it has finished decoding our data. 
 	// The buffer is now free to be reused.
+	NSLog(@"[INFO] AudioStreamerCUR.m: MyAudioQueueOutputCallback");
 	AudioStreamerCUR* streamer = (AudioStreamerCUR*)inClientData;
 	[streamer handleBufferCompleteForQueue:inAQ buffer:inBuffer];
 }
@@ -147,6 +148,7 @@ void MyAudioQueueOutputCallbackCUR(	void*					inClientData,
 //
 void MyAudioQueueIsRunningCallbackCUR(void *inUserData, AudioQueueRef inAQ, AudioQueuePropertyID inID)
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: MyAudioQueueIsRunningCallback");
 	AudioStreamerCUR* streamer = (AudioStreamerCUR *)inUserData;
 	[streamer handlePropertyChangeForQueue:inAQ propertyID:inID];
 }
@@ -160,6 +162,7 @@ void MyAudioQueueIsRunningCallbackCUR(void *inUserData, AudioQueueRef inAQ, Audi
 // TODO: Need to add this into the interruption framework, it's a bug!
 void MyAudioSessionInterruptionListenerCUR(void *inClientData, UInt32 inInterruptionState)
 {
+	//NSLog(@"[INFO] AudioStreamerCUR.m: MyAudioSessionInterruptionListenerCUR");
 	AudioStreamerCUR* streamer = (AudioStreamerCUR *)inClientData;
 	[streamer handleInterruptionChangeToState:inInterruptionState];
 }
@@ -197,6 +200,7 @@ static void ASReadStreamCallBackCUR
 
 -(NSUInteger)bufferSize
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: bufferSize");
     return (bufferSize) ? bufferSize : kAQDefaultBufSize;
 }
 
@@ -236,16 +240,20 @@ static void ASReadStreamCallBackCUR
 //
 - (BOOL)isFinishing
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: isFinishing");
+
 	@synchronized (self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: isFinishing");
 		if ((errorCode != AS_NO_ERROR && state != AS_INITIALIZED) ||
 			((state == AS_STOPPING || state == AS_STOPPED) &&
 				stopReason != AS_STOPPING_TEMPORARILY))
 		{
+			NSLog(@"[INFO] AudioStreamerCUR.m: isFinishing: 1");
 			return YES;
 		}
 	}
-	
+	NSLog(@"[INFO] AudioStreamerCUR.m: isFinishing: 2");
 	return NO;
 }
 
@@ -256,8 +264,10 @@ static void ASReadStreamCallBackCUR
 //
 - (BOOL)runLoopShouldExit
 {
+	//NSLog(@"[INFO] AudioStreamerCUR.m: runLoopShouldExit");
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: runLoopShouldExit");
 		if (errorCode != AS_NO_ERROR ||
 			(state == AS_STOPPED &&
 			stopReason != AS_STOPPING_TEMPORARILY))
@@ -322,6 +332,7 @@ static void ASReadStreamCallBackCUR
 {
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: failWithErrorCode");
 		if (errorCode != AS_NO_ERROR)
 		{
 			// Only set the error once.
@@ -371,6 +382,7 @@ static void ASReadStreamCallBackCUR
 {
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: setState");
 		if (state != aStatus)
 		{
 			state = aStatus;
@@ -417,18 +429,27 @@ static void ASReadStreamCallBackCUR
 //
 - (BOOL)isWaiting
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: isWaiting");
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: isWaiting");
 		if ([self isFinishing] ||
 			state == AS_STARTING_FILE_THREAD||
 			state == AS_WAITING_FOR_DATA ||
 			state == AS_WAITING_FOR_QUEUE_TO_START ||
 			state == AS_BUFFERING)
 		{
+			NSLog(@"[INFO] AudioStreamerCUR.m: isWaiting: 0");
 			return YES;
 		}
+		else
+		{
+			NSLog(@"[INFO] AudioStreamerCUR.m: isWaiting: 1");
+			return NO;
+		}
 	}
-	
+
+	NSLog(@"[INFO] AudioStreamerCUR.m: isWaiting: 2");
 	return NO;
 }
 
@@ -506,6 +527,7 @@ static void ASReadStreamCallBackCUR
 {
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: openReadStream");
 		NSAssert([[NSThread currentThread] isEqual:internalThread],
 			@"File stream download must be started on the internalThread");
 		NSAssert(stream == nil, @"Download stream already initialized");
@@ -625,6 +647,7 @@ static void ASReadStreamCallBackCUR
 
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: startInternal");
 		if (state != AS_STARTING_FILE_THREAD)
 		{
 			if (state != AS_STOPPING &&
@@ -658,6 +681,7 @@ static void ASReadStreamCallBackCUR
 			beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 		
 		@synchronized(self) {
+			NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: startInternal do");
 			if (seekWasRequested) {
 				[self internalSeekToTime:requestedSeekTime];
 				seekWasRequested = NO;
@@ -685,6 +709,7 @@ cleanup:
 
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: startInternal cleanup");
 		//
 		// Cleanup the read stream if it is still open
 		//
@@ -749,6 +774,7 @@ cleanup:
 {
 	@synchronized (self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: start");
 		if (state == AS_PAUSED)
 		{
 			[self pause];
@@ -861,6 +887,7 @@ cleanup:
 {
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: seekToTime");
 		seekWasRequested = YES;
 		requestedSeekTime = newSeekTime;
 	}
@@ -876,6 +903,7 @@ cleanup:
 {
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: progress");
 		if (sampleRate > 0 && ![self isFinishing])
 		{
 			if (state != AS_PLAYING && state != AS_PAUSED && state != AS_BUFFERING)
@@ -920,6 +948,7 @@ cleanup:
 {
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: volume");
 		if ((audioQueue != nil) && ![self isFinishing])
 		{
 			AudioQueueParameterValue result;
@@ -946,6 +975,7 @@ cleanup:
 	volume = value;
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: setVolume");
 		if ((audioQueue != nil) && ![self isFinishing])
 		{
 			OSStatus error = AudioQueueSetParameter(audioQueue,kAudioQueueParam_Volume,(AudioQueueParameterValue)value);
@@ -966,6 +996,7 @@ cleanup:
 //
 - (double)calculatedBitRate
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: calculatedBitRate");
 	if (packetDuration && processedPacketsCount > BitRateEstimationMinPackets)
 	{
 		double averagePacketByteSize = processedPacketsSizeTotal / processedPacketsCount;
@@ -1008,6 +1039,7 @@ cleanup:
 {
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: pause");
 		if (state == AS_PLAYING)
 		{
 			err = AudioQueuePause(audioQueue);
@@ -1044,8 +1076,10 @@ cleanup:
 //
 - (void)stop
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: stop");
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: stop");
 		if (audioQueue &&
 			(state == AS_PLAYING || state == AS_PAUSED ||
 				state == AS_BUFFERING || state == AS_WAITING_FOR_QUEUE_TO_START))
@@ -1085,6 +1119,7 @@ cleanup:
 - (void)handleReadFromStream:(CFReadStreamRef)aStream
 	eventType:(CFStreamEventType)eventType
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: handleReadFromStream");
 	if (aStream != stream)
 	{
 		//
@@ -1101,6 +1136,7 @@ cleanup:
 	{
 		@synchronized(self)
 		{
+			NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handleReadFromStream kCFStreamEventEndEncountered");
 			if ([self isFinishing])
 			{
 				return;
@@ -1125,6 +1161,7 @@ cleanup:
 
 		@synchronized(self)
 		{
+			NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handleReadFromStream 2");
 			if (state == AS_WAITING_FOR_DATA)
 			{
 				[self failWithErrorCode:AS_AUDIO_DATA_NOT_FOUND];
@@ -1212,6 +1249,7 @@ cleanup:
 		CFIndex length;
 		@synchronized(self)
 		{
+			NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handleReadFromStream 3");
 			if ([self isFinishing] || !CFReadStreamHasBytesAvailable(stream))
 			{
 				return;
@@ -1268,8 +1306,10 @@ cleanup:
 //
 - (void)enqueueBuffer
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: enqueueBuffer");
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: enqueueBuffer");
 		if ([self isFinishing] || stream == 0)
 		{
 			return;
@@ -1363,6 +1403,7 @@ cleanup:
 //
 - (void)createQueue
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: createQueue");
 	sampleRate = asbd.mSampleRate;
 	packetDuration = asbd.mFramesPerPacket / sampleRate;
 	
@@ -1451,8 +1492,10 @@ cleanup:
 	fileStreamPropertyID:(AudioFileStreamPropertyID)inPropertyID
 	ioFlags:(UInt32 *)ioFlags
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: handlePropertyChangeForFileStream");
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handlePropertyChangeForFileStream");
 		if ([self isFinishing])
 		{
 			return;
@@ -1573,8 +1616,10 @@ cleanup:
 	numberPackets:(UInt32)inNumberPackets
 	packetDescriptions:(AudioStreamPacketDescription *)inPacketDescriptions;
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: handleAudioPackets");
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handleAudioPackets");
 		if ([self isFinishing])
 		{
 			return;
@@ -1621,6 +1666,7 @@ cleanup:
 			
 			@synchronized(self)
 			{
+				NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handleAudioPackets 2");
 				// If the audio was terminated before this point, then
 				// exit.
 				if ([self isFinishing])
@@ -1644,6 +1690,7 @@ cleanup:
 			
 			@synchronized(self)
 			{
+				NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handleAudioPackets 3");
 				// If the audio was terminated while waiting for a buffer, then
 				// exit.
 				if ([self isFinishing])
@@ -1693,6 +1740,7 @@ cleanup:
 			
 			@synchronized(self)
 			{
+				NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handleAudioPackets 4");
 				// If the audio was terminated while waiting for a buffer, then
 				// exit.
 				if ([self isFinishing])
@@ -1747,6 +1795,7 @@ cleanup:
 - (void)handleBufferCompleteForQueue:(AudioQueueRef)inAQ
 	buffer:(AudioQueueBufferRef)inBuffer
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: handleBufferCompleteForQueue");
 	unsigned int bufIndex = -1;
 	for (unsigned int i = 0; i < kNumAQBufs; ++i)
 	{
@@ -1794,10 +1843,12 @@ cleanup:
 - (void)handlePropertyChangeForQueue:(AudioQueueRef)inAQ
 	propertyID:(AudioQueuePropertyID)inID
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: handlePropertyChangeForQueue");
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	@synchronized(self)
 	{
+		NSLog(@"[INFO] AudioStreamerCUR.m: synchronized: handlePropertyChangeForQueue");
 		if (inID == kAudioQueueProperty_IsRunning)
 		{
 			if (state == AS_STOPPING)
@@ -1847,6 +1898,7 @@ cleanup:
 //
 - (void)handleInterruptionChangeToState:(AudioQueuePropertyID)inInterruptionState
 {
+	NSLog(@"[INFO] AudioStreamerCUR.m: handleInterruptionChangeToState");
 	if (inInterruptionState == kAudioSessionBeginInterruption)
 	{
 		[self pause];

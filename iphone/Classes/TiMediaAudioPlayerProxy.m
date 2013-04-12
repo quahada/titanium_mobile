@@ -107,18 +107,24 @@
 
 -(void)restart:(id)args
 {
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: restart");
 	BOOL playing = [player isPlaying] || [player isPaused] || [player isWaiting];
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: restart: 0");
 	[self destroyPlayer];
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: restart: 1");
 	
 	if (playing)
 	{
+		DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: restart: 2");
 		[[self player] start];
 	}
 	else 
 	{
+		DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: restart: 3");
 		// just create it
 		[self player];
 	}
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: restart: 4");
 }
 
 
@@ -199,17 +205,25 @@ PLAYER_PROP_DOUBLE(state,state);
 
 -(void)setUrl:(id)args
 {
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl");
 	if (![NSThread isMainThread]) {
+		DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl: 0");
 		TiThreadPerformOnMainThread(^{[self setUrl:args];}, YES);
 		return;
 	}
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl: 1");
 	RELEASE_TO_NIL(url);
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl: 2");
 	ENSURE_SINGLE_ARG(args,NSString);
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl: 3");
 	url = [[TiUtils toURL:args proxy:self] retain];
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl: 4");
 	if (player!=nil)
 	{
+		DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl: 5");
 		[self restart:nil];
 	}
+	DebugLog(@"[INFO] TiMediaAudioplayerProxy.m: setUrl: 6");
 }
 
 -(NSURL*)url
