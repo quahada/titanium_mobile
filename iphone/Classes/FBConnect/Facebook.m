@@ -408,6 +408,7 @@ static void *finishedContext = @"finishedContext";
  *   by SDK, NO otherwise.
  */
 - (BOOL)handleOpenURL:(NSURL *)url {
+    NSLog(@"Facebook.m: handleOpenURL");
     // If the URL's structure doesn't match the structure used for Facebook authorization, abort.
     if (![[url absoluteString] hasPrefix:[self getOwnBaseUrl]]) {
         return NO;
@@ -422,6 +423,8 @@ static void *finishedContext = @"finishedContext";
     if (!query) {
         query = [url query];
     }
+
+    NSLog(@"Facebook.m: handleOpenURL 0");
     
     NSDictionary *params = [self parseURLParams:query];
     NSString *accessToken = [params objectForKey:@"access_token"];
@@ -455,6 +458,8 @@ static void *finishedContext = @"finishedContext";
         return YES;
     }
     
+    NSLog(@"Facebook.m: handleOpenURL 1");
+
     // We have an access token, so parse the expiration date.
     NSString *expTime = [params objectForKey:@"expires_in"];
     NSDate *expirationDate = [NSDate distantFuture];
@@ -788,6 +793,7 @@ static void *finishedContext = @"finishedContext";
  * Set the authToken and expirationDate after login succeed
  */
 - (void)fbDialogLogin:(NSString *)token expirationDate:(NSDate *)expirationDate {
+    NSLog(@"Facebook.m: fbDialogLogin");
     self.accessToken = token;
     self.expirationDate = expirationDate;
     [_lastAccessTokenUpdate release];
@@ -803,6 +809,7 @@ static void *finishedContext = @"finishedContext";
  * Did not login call the not login delegate
  */
 - (void)fbDialogNotLogin:(BOOL)cancelled {
+    NSLog(@"Facebook.m: fbDialogNotLogin");
     if ([self.sessionDelegate respondsToSelector:@selector(fbDidNotLogin:)]) {
         [self.sessionDelegate fbDidNotLogin:cancelled];
     }

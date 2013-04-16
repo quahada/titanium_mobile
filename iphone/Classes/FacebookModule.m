@@ -113,23 +113,35 @@
 
 -(BOOL)handleRelaunch
 {
+	NSLog(@"FacebookModule: handleRelaunch");
 	NSDictionary *launchOptions = [[TiApp app] launchOptions];
+	NSLog(@"FacebookModule: handleRelaunch 0");
 	if (launchOptions!=nil)
 	{
+		NSLog(@"FacebookModule: handleRelaunch 1");
 		NSString *urlString = [launchOptions objectForKey:@"url"];
+		NSLog(@"FacebookModule: handleRelaunch 2");
 		if (urlString!=nil && [urlString hasPrefix:@"fb"])
 		{
+			NSLog(@"FacebookModule: handleRelaunch 3");
 			// if we're resuming under the same URL, we need to ignore
 			if (url!=nil && [urlString isEqualToString:url])
 			{
-				return YES;
+				NSLog(@"FacebookModule: handleRelaunch 4");
+				//return YES;
 			}
+			NSLog(@"FacebookModule: handleRelaunch 5");
 			RELEASE_TO_NIL(url);
+			NSLog(@"FacebookModule: handleRelaunch 6");
 			url = [urlString copy];
+			NSLog(@"FacebookModule: handleRelaunch 7");
 			[facebook handleOpenURL:[NSURL URLWithString:urlString]];
+			NSLog(@"FacebookModule: handleRelaunch 8");
 			return YES;
 		}
+		NSLog(@"FacebookModule: handleRelaunch 9");
 	}
+	NSLog(@"FacebookModule: handleRelaunch 10");
 	return NO;
 }
 
@@ -242,6 +254,7 @@
  */
 -(id)loggedIn
 {
+	NSLog(@"FacebookModule: loggedIn");
 	return NUMBOOL([self isLoggedIn]);
 }
 
@@ -379,12 +392,13 @@
 {
 	ENSURE_UI_THREAD(authorize, args);
 	
+	NSLog(@"FacebookModule: authorize");
 	VerboseLog(@"[DEBUG] facebook authorize");
 
 	if ([self isLoggedIn])
 	{
 		// if already authorized, this should do nothing
-		return;
+		//return;
 	}
 	
 	if (appid==nil)
@@ -409,10 +423,12 @@
  */
 -(void)logout:(id)args
 {
+	NSLog(@"FacebookModule: logout");
 	VerboseLog(@"[DEBUG] facebook logout");
 	if ([self isLoggedIn])
 	{
-		[facebook logout:self];
+		//[facebook logout:self];
+		TiThreadPerformOnMainThread(^{[facebook logout:self];}, NO);
 	}
 }
 
@@ -530,6 +546,7 @@
 
 -(void)fireLoginChange
 {
+	NSLog(@"FacebookModule: fireLoginChange");
 	if (stateListeners!=nil)
 	{
 		for (id<TiFacebookStateListener> listener in [NSArray arrayWithArray:stateListeners])
@@ -554,6 +571,7 @@
  */
 - (void)fbDidLogin
 {
+	NSLog(@"FacebookModule: fbDidLogin");
 	VerboseLog(@"[DEBUG] facebook fbDidLogin");
 
 	[facebook requestWithGraphPath:@"me" andDelegate:self];
@@ -564,6 +582,7 @@
  */
 - (void)fbDidNotLogin:(BOOL)cancelled
 {
+	NSLog(@"FacebookModule: fbDidNotLogin");
 	VerboseLog(@"[DEBUG] facebook fbDidNotLogin: cancelled=%d",cancelled);
 	loggedIn = NO;
 	[self fireLoginChange];
@@ -576,6 +595,7 @@
  */
 - (void)fbDidLogout
 {
+	NSLog(@"FacebookModule: fbDidLogout");
 	VerboseLog(@"[DEBUG] facebook fbDidLogout");
 	
 	loggedIn = NO;
@@ -639,6 +659,7 @@
 
 -(void)addListener:(id<TiFacebookStateListener>)listener
 {
+	NSLog(@"FacebookModule: addListener");
 	if (stateListeners==nil)
 	{
 		stateListeners = [[NSMutableArray alloc]init];
@@ -648,6 +669,7 @@
 
 -(void)removeListener:(id<TiFacebookStateListener>)listener
 {
+	NSLog(@"FacebookModule: removeListener");
 	if (stateListeners!=nil)
 	{
 		[stateListeners removeObject:listener];
