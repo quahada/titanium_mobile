@@ -50,6 +50,13 @@
 
 #include "AQRecorder.h"
 
+ 
+/*
+enum {
+ kMP4Audio_AAC_LC_ObjectType  = 2
+};
+*/
+
 // ____________________________________________________________________________________
 // Determine the size, in bytes, of a buffer necessary to represent the supplied number
 // of seconds of audio data.
@@ -275,10 +282,12 @@ void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
 		case kAudioFormatMPEG4AAC:
 		{
 			fprintf(stderr, "Info: format: kAudioFormatMPEG4AAC\n");
-			mRecordFormat.mFormatFlags = 1;//0
+			mRecordFormat.mFormatFlags = 2;
+			//mRecordFormat.mFormatFlags = 1;//0
 			mRecordFormat.mBitsPerChannel = 0;
 			mRecordFormat.mSampleRate = 44100.0;
-			mRecordFormat.mChannelsPerFrame = 1;
+			mRecordFormat.mChannelsPerFrame = 2;
+			//mRecordFormat.mChannelsPerFrame = 1;
 			mRecordFormat.mBytesPerPacket = 0;
 			mRecordFormat.mBytesPerFrame = 0;
 			mRecordFormat.mFramesPerPacket = 1024;
