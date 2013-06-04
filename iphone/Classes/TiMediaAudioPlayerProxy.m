@@ -281,6 +281,17 @@ MAKE_SYSTEM_PROP(STATE_STOPPING,AS_STOPPING);
 MAKE_SYSTEM_PROP(STATE_STOPPED,AS_STOPPED);
 MAKE_SYSTEM_PROP(STATE_PAUSED,AS_PAUSED);
 
+-(void)setOverrideAudioRoute:(NSNumber*)mode
+{
+    UInt32 newMode = [mode unsignedIntegerValue]; // Close as we can get to UInt32
+    if (newMode == kAudioSessionCategory_RecordAudio) {
+        DebugLog(@"[WARN] setOverrideAudioRoute: Invalid mode for audio player... setting to default.");
+        newMode = kAudioSessionCategory_SoloAmbientSound;
+    }
+	DebugLog(@"[WARN] 'setOverrideAudioRoute: Ti.Media.AudioPlayer.audioSessionMode' is deprecated; use 'Ti.Media.audioSessionMode'");
+	[[TiMediaAudioSession sharedSession] setRouteOverride:newMode];
+}
+
 -(void)setAudioSessionMode:(NSNumber*)mode
 {
     UInt32 newMode = [mode unsignedIntegerValue]; // Close as we can get to UInt32
