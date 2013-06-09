@@ -50,6 +50,13 @@
 
 #include "AQRecorder.h"
 
+ 
+/*
+enum {
+ kMP4Audio_AAC_LC_ObjectType  = 2
+};
+*/
+
 // ____________________________________________________________________________________
 // Determine the size, in bytes, of a buffer necessary to represent the supplied number
 // of seconds of audio data.
@@ -67,8 +74,20 @@ int AQRecorder::ComputeRecordBufferSize(const AudioStreamBasicDescription *forma
 				maxPacketSize = format->mBytesPerPacket;	// constant packet size
 			else {
 				UInt32 propertySize = sizeof(maxPacketSize);
-				XThrowIfError(AudioQueueGetProperty(mQueue, kAudioQueueProperty_MaximumOutputPacketSize, &maxPacketSize,
-													&propertySize), "couldn't get queue's maximum output packet size");
+				OSStatus queueStatus = AudioQueueGetProperty(mQueue, kAudioQueueProperty_MaximumOutputPacketSize, &maxPacketSize,
+													&propertySize);
+				fprintf(stderr, "Info: queueStatus: %d \n", queueStatus);
+				fprintf(stderr, "Info: maxPacketSize: %d \n", maxPacketSize);
+				try {
+					XThrowIfError(queueStatus, "couldn't get queue's maximum output packet size");
+				}
+				catch (CAXException& e) {
+					maxPacketSize = 768;
+					fprintf(stderr, "Info: manually setting maxPacketSize = 768\n");
+				}
+				
+				//XThrowIfError(AudioQueueGetProperty(mQueue, kAudioQueueProperty_MaximumOutputPacketSize, &maxPacketSize,
+				//									&propertySize), "couldn't get queue's maximum output packet size");
 			}
 			if (format->mFramesPerPacket > 0)
 				packets = frames / format->mFramesPerPacket;
@@ -80,7 +99,7 @@ int AQRecorder::ComputeRecordBufferSize(const AudioStreamBasicDescription *forma
 		}
 	} catch (CAXException e) {
 		char buf[256];
-		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
+		fprintf(stderr, "AQRecorder::ComputeRecordBufferSize Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
 		return 0;
 	}	
 	return bytes;
@@ -177,6 +196,7 @@ void AQRecorder::CopyEncoderCookieToFile()
 
 void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
 {
+	fprintf(stderr, "Info: AQRecorder::SetupAudioFormat\n");		
 	memset(&mRecordFormat, 0, sizeof(mRecordFormat));
 	
 	UInt32 size = sizeof(mRecordFormat.mSampleRate);
@@ -197,8 +217,11 @@ void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
 	catch (CAXException& e) {
 		char buf[256];
 		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));		
+		mRecordFormat.mChannelsPerFrame = 1;
+		fprintf(stderr, "Info: manually setting mRecordFormat.mChannelsPerFrame = 1\n");
 	}
 	
+	fprintf(stderr, "Info: inFormatID: %d \n", inFormatID);
 	mRecordFormat.mFormatID = inFormatID;
 	
 	switch(inFormatID)
@@ -214,7 +237,16 @@ void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
 			mRecordFormat.mBytesPerPacket = 2;
 			break;
 		}
-		case kAudioFormatALaw:
+		case kAudioFormatALaw:{  //shouldn't be here, just seemed like a syntax error or something
+			mRecordFormat.mSampleRate = 8000.0;
+			mRecordFormat.mFormatFlags = 0;
+			mRecordFormat.mFramesPerPacket = 1;
+			mRecordFormat.mChannelsPerFrame = 1;
+			mRecordFormat.mBitsPerChannel = 8;
+			mRecordFormat.mBytesPerPacket = 1;
+			mRecordFormat.mBytesPerFrame = 1;
+			break;
+		}
 		case kAudioFormatULaw:
 		{
 			mRecordFormat.mSampleRate = 8000.0;
@@ -249,9 +281,12 @@ void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
 		}
 		case kAudioFormatMPEG4AAC:
 		{
-			mRecordFormat.mFormatFlags = 0;
+			fprintf(stderr, "Info: format: kAudioFormatMPEG4AAC\n");
+			mRecordFormat.mFormatFlags = 2;
+			//mRecordFormat.mFormatFlags = 1;//0
 			mRecordFormat.mBitsPerChannel = 0;
 			mRecordFormat.mSampleRate = 44100.0;
+			//mRecordFormat.mChannelsPerFrame = 2;
 			mRecordFormat.mChannelsPerFrame = 1;
 			mRecordFormat.mBytesPerPacket = 0;
 			mRecordFormat.mBytesPerFrame = 0;
@@ -259,6 +294,13 @@ void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
 			break;
 		}
 	}
+	fprintf(stderr, "Info: mRecordFormat.mFormatFlags: %d \n", mRecordFormat.mFormatFlags);
+	fprintf(stderr, "Info: mRecordFormat.mBitsPerChannel: %d \n", mRecordFormat.mBitsPerChannel);
+	fprintf(stderr, "Info: mRecordFormat.mSampleRate: %f \n", mRecordFormat.mSampleRate);
+	fprintf(stderr, "Info: mRecordFormat.mChannelsPerFrame: %d \n", mRecordFormat.mChannelsPerFrame);
+	fprintf(stderr, "Info: mRecordFormat.mBytesPerPacket: %d \n", mRecordFormat.mBytesPerPacket);
+	fprintf(stderr, "Info: mRecordFormat.mBytesPerFrame: %d \n", mRecordFormat.mBytesPerFrame);
+	fprintf(stderr, "Info: mRecordFormat.mFramesPerPacket: %d \n", mRecordFormat.mFramesPerPacket);
 }
 
 void AQRecorder::PauseRecord()
@@ -281,12 +323,15 @@ void AQRecorder::StartRecord(CFStringRef inRecordFile, UInt32 fileFormatID)
 {
 	int i, bufferByteSize;
 	UInt32 size;
-	CFURLRef url;
+	CFURLRef url = nil;
 	
 	mIsPaused = false;
 	
 	try {		
 		mFileName = CFStringCreateCopy(kCFAllocatorDefault, inRecordFile);
+
+		// specify the recording format
+		//SetupAudioFormat(fileFormatID);
 		
 		// create the queue
 		XThrowIfError(AudioQueueNewInput(
@@ -305,13 +350,21 @@ void AQRecorder::StartRecord(CFStringRef inRecordFile, UInt32 fileFormatID)
 											&mRecordFormat, &size), "couldn't get queue's format");
 		
 		//NSString *recordFile = [NSTemporaryDirectory() stringByAppendingPathComponent: (NSString*)inRecordFile];	
+		//url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)recordFile, kCFURLPOSIXPathStyle, false);
 		
-		url = CFURLCreateWithString(kCFAllocatorDefault, (CFStringRef)mFileName, NULL);
+		//url = CFURLCreateWithString(kCFAllocatorDefault, (CFStringRef)mFileName, NULL);
+		url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)mFileName, kCFURLPOSIXPathStyle, false);
+
 		
 		// create the audio file
-		XThrowIfError(AudioFileCreateWithURL(url, fileFormatID, &mRecordFormat, kAudioFileFlags_EraseFile,
-											 &mRecordFile), "AudioFileCreateWithURL failed");
+		//XThrowIfError(AudioFileCreateWithURL(url, fileFormatID, &mRecordFormat, kAudioFileFlags_EraseFile,
+		//									 &mRecordFile), "AudioFileCreateWithURL failed");
+		OSStatus status = AudioFileCreateWithURL(url, fileFormatID, &mRecordFormat, kAudioFileFlags_EraseFile,
+											 &mRecordFile);
+
 		CFRelease(url);
+
+		XThrowIfError(status, "AudioFileCreateWithURL failed");
 		
 		// copy the cookie first to give the file object as much info as we can about the data going in
 		// not necessary for pcm, but required for some compressed audio
@@ -329,12 +382,12 @@ void AQRecorder::StartRecord(CFStringRef inRecordFile, UInt32 fileFormatID)
 		mIsRunning = true;
 		XThrowIfError(AudioQueueStart(mQueue, NULL), "AudioQueueStart failed");
 	}
-	catch (CAXException &e) {
+	catch (CAXException e) {
 		char buf[256];
-		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
+		fprintf(stderr, "AQRecorder StartRecord Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
 	}
 	catch (...) {
-		fprintf(stderr, "An unknown error occurred\n");
+		fprintf(stderr, "AQRecorder StartRecord: An unknown error occurred\n");
 	}	
 	
 }

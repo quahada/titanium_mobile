@@ -18,19 +18,26 @@ NSString * const kTiMediaAudioSessionInputChange = @"TiMediaAudioSessionInputCha
 
 void TiAudioSessionInterruptionCallback(void *inUserData,UInt32 interruptionState)
 {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: TiAudioSessionInterruptionCallback");
 	TiMediaAudioSession* session = (TiMediaAudioSession*)inUserData;
 	if ([session isActive])
 	{
 		if (interruptionState == kAudioSessionBeginInterruption)
 		{
+			DebugLog(@"[INFO] TiMediaAudioSession.m: kAudioSessionBeginInterruption");
 			WARN_IF_BACKGROUND_THREAD;	//NSNotificationCenter is not threadsafe!
 			[[NSNotificationCenter defaultCenter] postNotificationName:kTiMediaAudioSessionInterruptionBegin object:session];
 		}
 		else if (interruptionState == kAudioSessionEndInterruption)
 		{
+			DebugLog(@"[INFO] TiMediaAudioSession.m: kAudioSessionEndInterruption");
 			WARN_IF_BACKGROUND_THREAD;	//NSNotificationCenter is not threadsafe!
 			[[NSNotificationCenter defaultCenter] postNotificationName:kTiMediaAudioSessionInterruptionEnd object:session];
 		}
+	}
+	else
+	{
+		DebugLog(@"[INFO] TiMediaAudioSession.m: TiAudioSessionInterruptionCallback Session not active");
 	}
 }
 
@@ -43,6 +50,7 @@ void TiAudioSessionAudioVolumeCallback(void *inUserData, AudioSessionPropertyID 
 
 void TiAudioSessionAudioRouteChangeCallback(void *inUserData, AudioSessionPropertyID prop, UInt32 size, const void *inData)
 {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: TiAudioSessionAudioRouteChangeCallback");
 	TiMediaAudioSession* session = (TiMediaAudioSession*)inUserData;
 	NSDictionary *dict = (NSDictionary*)inData;
 	NSMutableDictionary *event = [NSMutableDictionary dictionary];
@@ -102,6 +110,7 @@ void TiAudioSessionAudioRouteChangeCallback(void *inUserData, AudioSessionProper
 
 void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionPropertyID inID, UInt32 dataSize, const void* inData)
 {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: TiAudioSessionInputAvailableCallback");
 	TiMediaAudioSession* session = (TiMediaAudioSession*)inUserData;
 	WARN_IF_BACKGROUND_THREAD;	//NSNotificationCenter is not threadsafe!
 	[[NSNotificationCenter defaultCenter] postNotificationName:kTiMediaAudioSessionInputChange object:session];
@@ -111,6 +120,7 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 
 -(void)deactivateSession
 {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: deactivateSession");
     // deregister from audio route changes
     AudioSessionRemovePropertyListenerWithUserData(kAudioSessionProperty_AudioRouteChange, TiAudioSessionAudioRouteChangeCallback, self);
     //deregister from audio volume changes
@@ -121,6 +131,7 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 }
 
 - (void)dealloc {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: dealloc");
     if ([self isActive]) {
         DeveloperLog(@"[WARN] AudioSession being deallocated is still active");
         [self deactivateSession];
@@ -131,6 +142,7 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 
 -(id)init
 {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: init");
 	if (self = [super init])
 	{
 		count = 0;
@@ -159,6 +171,8 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 	[lock lock];
 	active = count > 0;
 	[lock unlock];
+	//fprintf(stderr, "Info: isActive: %s \n", active);
+	//fprintf(stderr, "Info: count: %s \n", count);
 	return active;
 }
 
@@ -281,6 +295,15 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 	AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(mode), &mode);
 }
 
+-(void)setRouteOverride:(UInt32)mode
+{
+	DebugLog(@"[DEBUG] setRouteOverride.");
+	if ([self isActive]) {
+		DebugLog(@"[WARN] Overriding audio route while playing audio... changes will not take effect until audio is restarted.");
+	}
+	AudioSessionSetProperty(kAudioSessionProperty_OverrideAudioRoute, sizeof(mode), &mode);
+}
+
 -(UInt32)sessionMode
 {
 	UInt32 mode;
@@ -293,6 +316,7 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 
 -(void)startAudioSession
 {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: startAudioSession");
 	[lock lock];
 	count++;
 	if (count == 1)
@@ -314,6 +338,7 @@ void TiAudioSessionInputAvailableCallback(void* inUserData, AudioSessionProperty
 
 -(void)stopAudioSession
 {
+	DebugLog(@"[INFO] TiMediaAudioSession.m: stopAudioSession");
 	[lock lock];
 	count--;
 	if (count == 0)
