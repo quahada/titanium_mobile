@@ -1,0 +1,31 @@
+diff --git a/iphone/Classes/AQRecorder.mm b/iphone/Classes/AQRecorder.mm
+index 9cf6b00..74f99d8 100644
+--- a/iphone/Classes/AQRecorder.mm
++++ b/iphone/Classes/AQRecorder.mm
+@@ -50,6 +50,13 @@
+ 
+ #include "AQRecorder.h"
+ 
++ 
++/*
++enum {
++ kMP4Audio_AAC_LC_ObjectType  = 2
++};
++*/
++
+ // ____________________________________________________________________________________
+ // Determine the size, in bytes, of a buffer necessary to represent the supplied number
+ // of seconds of audio data.
+@@ -275,9 +282,11 @@ void AQRecorder::SetupAudioFormat(UInt32 inFormatID)
+ 		case kAudioFormatMPEG4AAC:
+ 		{
+ 			fprintf(stderr, "Info: format: kAudioFormatMPEG4AAC\n");
+-			mRecordFormat.mFormatFlags = 1;//0
++			mRecordFormat.mFormatFlags = 2;
++			//mRecordFormat.mFormatFlags = 1;//0
+ 			mRecordFormat.mBitsPerChannel = 0;
+ 			mRecordFormat.mSampleRate = 44100.0;
++			//mRecordFormat.mChannelsPerFrame = 2;
+ 			mRecordFormat.mChannelsPerFrame = 1;
+ 			mRecordFormat.mBytesPerPacket = 0;
+ 			mRecordFormat.mBytesPerFrame = 0;
