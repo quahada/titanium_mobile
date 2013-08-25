@@ -415,7 +415,7 @@ exports.validate = function (logger, config, cli) {
 			fs.readdirSync(resourcesDir).forEach(function (filename) {
 				var lcaseFilename = filename.toLowerCase(),
 					isDir = fs.statSync(path.join(resourcesDir, filename)).isDirectory();
-	
+
 				if (blacklistDirectories.indexOf(lcaseFilename) != -1) {
 					if (isDir) {
 						logger.error(__('Found blacklisted directory in the Resources directory') + '\n');
@@ -1228,7 +1228,7 @@ build.prototype = {
 		plist.CFBundleShortVersionString = plist.CFBundleVersion;
 
 		Array.isArray(plist.CFBundleIconFiles) || (plist.CFBundleIconFiles = []);
-		['.png', '@2x.png', '-72.png', '-Small-50.png', '-72@2x.png', '-Small-50@2x.png', '-Small.png', '-Small@2x.png'].forEach(function (name) {
+		['.png', '@2x.png', '-72.png', '-60.png', '-60@2x.png', '-76.png', '-76@2x.png', '-Small-50.png', '-72@2x.png', '-Small-50@2x.png', '-Small.png', '-Small@2x.png', '-Small-40.png', '-Small-40@2x.png'].forEach(function (name) {
 			name = iconName + name;
 			if (afs.exists(this.projectDir, 'Resources', name) ||
 				afs.exists(this.projectDir, 'Resources', 'iphone', name) ||
@@ -2411,6 +2411,7 @@ build.prototype = {
 				cwd: this.buildDir,
 				env: {
 					DEVELOPER_DIR: this.xcodeEnv.path,
+					TMPDIR: process.env.TMPDIR,
 					HOME: process.env.HOME,
 					PATH: process.env.PATH,
 					TITANIUM_CLI_XCODEBUILD: 'Enjoy hacking? http://jobs.appcelerator.com/'
