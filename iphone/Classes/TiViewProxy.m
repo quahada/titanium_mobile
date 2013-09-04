@@ -148,7 +148,7 @@
 	}
 	
     if ([arg conformsToProtocol:@protocol(TiWindowProtocol)]) {
-        DebugLog(@"Can not add a window as a child of a view. Returning");
+        DebugLog(@"[WARN] Can not add a window as a child of a view. Returning");
         return;
     }
     
