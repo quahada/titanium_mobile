@@ -193,6 +193,7 @@
     _supportedOrientations = [TiUtils TiOrientationFlagsFromObject:object];
     
     //GO ahead and call open on the UI thread
+    DebugLog(@"[WARN] TiWindowProxy TiThreadPerformOnMainThread");
     TiThreadPerformOnMainThread(^{
         [self openOnUIThread:args];
     }, YES);
@@ -244,12 +245,13 @@
 {
     TiRootViewController* theController = [[TiApp app] controller];
     if (isModal || (tab != nil) || self.isManaged) {
+        DebugLog(@"[WARN] TiWindowProxy: The top View controller is not a container controller. This window will open behind the presented controller. 0")
         [self forgetProxy:openAnimation];
         RELEASE_TO_NIL(openAnimation);
     }
     
     if ( (tab == nil) && (isModal == NO) && ([theController topPresentedController] != [theController topContainerController]) ){
-        DebugLog(@"[WARN] The top View controller is not a container controller. This window will open behind the presented controller. 1")
+        DebugLog(@"[WARN] TiWindowProxy: The top View controller is not a container controller. This window will open behind the presented controller. 1")
         [self forgetProxy:openAnimation];
         RELEASE_TO_NIL(openAnimation);
     }
@@ -425,7 +427,7 @@
             }
         }
     } else {
-        DebugLog(@"[WARN] OPEN ABORTED. _handleOpen returned NO");
+        DebugLog(@"[WARN] TiWindowProxy OPEN ABORTED. _handleOpen returned NO");
         opening = NO;
         opened = NO;
         [self forgetProxy:openAnimation];
